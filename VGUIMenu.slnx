@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="VGUIMenu.Shared/VGUIMenu.Shared.csproj" />
+  <Project Path="VGUIMenu/VGUIMenu.csproj" />
+  <Project Path="VGUIMenu.Tests/VGUIMenu.Tests.csproj" />
+</Solution>

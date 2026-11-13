@@ -1,0 +1,28 @@
+<root>
+    <styles>
+        <include src="s2r://panorama/styles/custom_game/vguimenu.vcss_c" />
+    </styles>
+    <!--
+        VGUIMenu radio menu. Driven by the VGUIMenu ModSharp module:
+        - dialog variables {s:title}, {s:line1} … {s:line12} are set on #vguimenu
+        - classes toggled per player: #vguimenu.Hidden, .Collapsed and .Muted on #title / #lineN
+        Keep the ids and the number of lines (12) in sync with HudPresenter.cs.
+    -->
+    <Panel class="Root" hittest="false">
+        <Panel id="vguimenu" class="Hidden" hittest="false">
+            <Label id="title" class="Title" text="{s:title}" />
+            <Label id="line1" class="Line Collapsed" text="{s:line1}" />
+            <Label id="line2" class="Line Collapsed" text="{s:line2}" />
+            <Label id="line3" class="Line Collapsed" text="{s:line3}" />
+            <Label id="line4" class="Line Collapsed" text="{s:line4}" />
+            <Label id="line5" class="Line Collapsed" text="{s:line5}" />
+            <Label id="line6" class="Line Collapsed" text="{s:line6}" />
+            <Label id="line7" class="Line Collapsed" text="{s:line7}" />
+            <Label id="line8" class="Line Collapsed" text="{s:line8}" />
+            <Label id="line9" class="Line Collapsed" text="{s:line9}" />
+            <Label id="line10" class="Line Collapsed" text="{s:line10}" />
+            <Label id="line11" class="Line Collapsed" text="{s:line11}" />
+            <Label id="line12" class="Line Collapsed" text="{s:line12}" />
+        </Panel>
+    </Panel>
+</root>

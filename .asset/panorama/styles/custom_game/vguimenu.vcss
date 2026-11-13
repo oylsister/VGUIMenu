@@ -1,0 +1,55 @@
+.Root
+{
+    width: 100%;
+    height: 100%;
+}
+
+/* Menu box: left side of the screen, under the money / buy HUD. */
+#vguimenu
+{
+    horizontal-align: left;
+    vertical-align: top;
+    margin-top: 36%;
+    margin-left: 0.8%;
+    padding: 6px 12px 8px 10px;
+    flow-children: down;
+    background-color: rgba(0, 0, 0, 0.45);
+    border-radius: 4px;
+    font-family: Stratum2, 'Arial Unicode MS';
+    font-size: 24px;
+    font-weight: bold;
+    transition-property: opacity;
+    transition-duration: 0.1s;
+    opacity: 1;
+}
+
+#vguimenu.Hidden
+{
+    opacity: 0;
+}
+
+/* Title: light yellow. */
+.Title
+{
+    color: #fff1c4;
+    text-shadow: 1px 1px 2px #000000;
+}
+
+/* Choices, Back, Next, Exit: yellow / orange. */
+.Line
+{
+    color: #f0a83a;
+    text-shadow: 1px 1px 2px #000000;
+}
+
+/* Disabled choices: light yellow, like the title. */
+.Line.Muted
+{
+    color: #fff1c4;
+    opacity: 0.85;
+}
+
+.Collapsed
+{
+    visibility: collapse;
+}

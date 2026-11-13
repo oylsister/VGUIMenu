@@ -1,0 +1,10 @@
+<root>
+    <styles>
+        <include src="s2r://panorama/styles/custom_game/entwatch_ed.vcss_c" />
+    </styles>
+    <Panel class="Root">
+        <Panel id="entwatch" class="Disabled">
+            <Label class="Body" text="{s:item-list}" />
+        </Panel>
+    </Panel>
+</root>

@@ -1,0 +1,26 @@
+{
+  // Compiled Panorama layout. Clients must have it (ship it in the server's workshop addon).
+  "LayoutPath": "panorama/layout/custom_game/vguimenu.vxml_c",
+
+  // Lines longer than this many characters wrap to a new line.
+  "WrapLength": 32,
+
+  "Sounds": {
+    "Enabled": true,
+    // CS2 sound event names. Leave empty to disable one.
+    "Select": "UIPanorama.submenu_select",
+    "Exit": "UIPanorama.submenu_dropdown_select",
+    "ExitBack": "UIPanorama.submenu_dropdown_select"
+  },
+
+  // Text of the control slots.
+  "Labels": {
+    "Previous": "Back",
+    "ExitBack": "Back",
+    "Next": "Next",
+    "Exit": "Exit"
+  },
+
+  // Registers !vguimenu_test to preview menus. Turn off on live servers.
+  "EnableTestCommand": true
+}

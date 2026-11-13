@@ -1,0 +1,29 @@
+.Root
+{
+    width: 100%;
+    height: 100%;
+}
+
+#entwatch
+{
+    margin-top: 30%;
+    margin-left: 10%;
+    horizontal-align: left;
+    flow-children: down;
+    font-size: 35px;
+    font-weight: bold;
+    color: rgb(255, 255, 255);
+    transition-property: opacity;
+    transition-duration: .1s;
+    opacity: 1;
+}
+
+#entwatch.Disabled
+{
+    opacity: 0;
+}
+
+.Body
+{
+    text-shadow: 2px 1px 4px #000000;
+}

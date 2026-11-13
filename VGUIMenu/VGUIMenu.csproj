@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>VGUIMenu</AssemblyName>
+    <RootNamespace>VGUIMenu</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>x64</PlatformTarget>
+    <Description>CS:GO-style radio menu for CS2, rendered with a Panorama custom HUD layout.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ModSharp.Sharp.Shared" Version="2.1.227" ExcludeAssets="runtime" />
+    <!-- VGUIMenu.Shared is loaded by ModSharp from sharp/shared, so it is not copied next to the module. -->
+    <ProjectReference Include="..\VGUIMenu.Shared\VGUIMenu.Shared.csproj" Private="false" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="VGUIMenu.Tests" />
+  </ItemGroup>
+
+  <!-- Lay out a ready-to-copy "sharp" folder in <solution>/build. -->
+  <Target Name="PackageModule" AfterTargets="Build">
+    <PropertyGroup>
+      <BuildRoot>$(MSBuildThisFileDirectory)..\build\</BuildRoot>
+      <SharedOutDir>$(MSBuildThisFileDirectory)..\VGUIMenu.Shared\bin\$(Configuration)\$(TargetFramework)\</SharedOutDir>
+    </PropertyGroup>
+    <Copy SourceFiles="$(TargetDir)$(TargetName).dll;$(TargetDir)$(TargetName).deps.json" DestinationFolder="$(BuildRoot)modules\$(TargetName)" />
+    <Copy SourceFiles="$(SharedOutDir)VGUIMenu.Shared.dll" DestinationFolder="$(BuildRoot)shared\VGUIMenu.Shared" Condition="Exists('$(SharedOutDir)VGUIMenu.Shared.dll')" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\configs\vguimenu.json" DestinationFolder="$(BuildRoot)configs" />
+  </Target>
+
+</Project>
