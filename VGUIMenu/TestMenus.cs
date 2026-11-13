@@ -7,7 +7,7 @@ namespace VGUIMenu;
 
 /// <summary>
 ///     Preview menus for in-game testing: <c>!vguimenu_test [leader|market|styles|wrap]</c>.
-///     Disable with <c>EnableTestCommand: false</c> in vguimenu.json.
+///     Disable with <c>EnableTestCommand: false</c> in vguimenu.jsonc.
 /// </summary>
 internal sealed class TestMenus
 {

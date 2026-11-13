@@ -14,6 +14,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
     <!-- Runtime copy of Sharp.Shared so interface types load in tests. -->
     <PackageReference Include="ModSharp.Sharp.Shared" Version="2.1.227" />
+    <PackageReference Include="ModSharp.Sharp.Modules.MenuManager.Shared" Version="2.1.227" />
   </ItemGroup>
 
   <ItemGroup>

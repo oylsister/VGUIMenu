@@ -175,6 +175,56 @@ public class MenuRendererTests
     }
 
     [Fact]
+    public void OneItem_ItemAndExit()
+    {
+        var (panel, state) = Render(MakeMenu(1));
+
+        Assert.Equal(["1. Item 0", "", "9. Exit"], Texts(panel));
+        Assert.Equal(ItemSelection.Item, state.Slots[1].Type);
+        Assert.Equal(ItemSelection.Exit, state.Slots[9].Type);
+
+        for (var key = 2; key <= 8; key++)
+        {
+            Assert.Equal(ItemSelection.None, state.Slots[key].Type);
+        }
+    }
+
+    [Fact]
+    public void SevenItems_TwoPages()
+    {
+        var menu  = MakeMenu(7);
+        var state = new MenuState { Menu = menu };
+
+        var page1 = MenuRenderer.Render(NoClient, state, ItemOrder.Ascending, ControlLabels.English)!;
+        Assert.Equal("8. Next", Texts(page1)[^2]);
+        Assert.Equal(ItemSelection.Next, state.Slots[8].Type);
+
+        var page2 = MenuRenderer.Render(NoClient, state, ItemOrder.Ascending, ControlLabels.English)!;
+        Assert.Equal(["1. Item 6", "", "", "", "", "", "", "7. Back", "", "9. Exit"], Texts(page2));
+        Assert.Equal(6, state.Slots[1].Item);
+        Assert.Equal(ItemSelection.None, state.Slots[8].Type);
+    }
+
+    [Fact]
+    public void DisplayAtSecondItem_NextThenBack_ReturnsToSamePage()
+    {
+        var menu  = MakeMenu(13);
+        var state = new MenuState { Menu = menu, LastItem = 1 };
+
+        MenuRenderer.Render(NoClient, state, ItemOrder.Ascending, ControlLabels.English);
+        Assert.Equal(1, state.ItemOnPage);
+
+        MenuRenderer.Render(NoClient, state, ItemOrder.Ascending, ControlLabels.English);
+        Assert.Equal(7, state.ItemOnPage);
+
+        var back = MenuRenderer.Render(NoClient, state, ItemOrder.Descending, ControlLabels.English)!;
+        Assert.Equal(1, state.ItemOnPage);
+        Assert.Equal("1. Item 1", back.Lines[0].Text);
+        Assert.Equal(ItemSelection.Back, state.Slots[7].Type);
+        Assert.Equal(ItemSelection.Next, state.Slots[8].Type);
+    }
+
+    [Fact]
     public void EmptyMenu_RendersNothing()
     {
         var state = new MenuState { Menu = new Menu() };

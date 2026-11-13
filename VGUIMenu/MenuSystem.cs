@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Sharp.Shared.Managers;
 using Sharp.Shared.Objects;
 using Sharp.Shared.Types;
@@ -19,6 +19,9 @@ internal sealed class MenuPlayer
     public double       MenuStartTime;
     public int          MenuHoldTime;
 
+    /// <summary>External menu that was open when this menu was shown (normally none, since it gets closed).</summary>
+    public ulong?       ExternalMenuAtDisplay;
+
     public MenuState    States { get; } = new ();
     public HudPresenter Hud    { get; }
 
@@ -29,6 +32,8 @@ internal sealed class MenuPlayer
         Client        = null;
         MenuStartTime = 0;
         MenuHoldTime  = 0;
+
+        ExternalMenuAtDisplay = null;
         States.Reset();
     }
 }
@@ -45,16 +50,22 @@ internal sealed class MenuSystem : IVGUIMenuManager
     private readonly Func<MenuConfig> _config;
     private readonly Func<double>     _clock;
     private readonly ILogger          _logger;
+    private readonly Func<bool>       _soundsEnabled;
 
-    public MenuSystem(IPanoramaManager panorama, Func<MenuConfig> config, Func<double> clock, ILogger logger)
+    /// <param name="soundsEnabled">Runtime switch (the ms_vguimenu_sounds ConVar); combined with <c>Sounds.Enabled</c> in the config.</param>
+    /// <summary>Other menu systems (ModSharp's MenuManager). The most recently opened menu wins.</summary>
+    public IExternalMenuSource? ExternalMenus { get; set; }
+
+    public MenuSystem(IPanoramaManager panorama, ITransmitManager transmit, Func<MenuConfig> config, Func<double> clock, ILogger logger, Func<bool>? soundsEnabled = null)
     {
-        _config = config;
-        _clock  = clock;
-        _logger = logger;
+        _config        = config;
+        _clock         = clock;
+        _logger        = logger;
+        _soundsEnabled = soundsEnabled ?? (() => true);
 
         for (var i = 0; i < MaxPlayers; i++)
         {
-            _players[i] = new MenuPlayer(new HudPresenter(panorama, config, logger));
+            _players[i] = new MenuPlayer(new HudPresenter(panorama, transmit, config, logger));
         }
     }
 
@@ -125,6 +136,14 @@ internal sealed class MenuSystem : IVGUIMenuManager
         player.MenuHoldTime  = Math.Max(0, time);
 
         player.Hud.Show(client, panel);
+
+        // Newest menu wins: close any other menu system's menu, and remember what's left so Think() only
+        // reacts to a menu opened after this one.
+        if (ExternalMenus is { } external)
+        {
+            CloseExternal(external, client);
+            player.ExternalMenuAtDisplay = GetExternal(external, client);
+        }
 
         player.AutoIgnore = false;
 
@@ -339,7 +358,7 @@ internal sealed class MenuSystem : IVGUIMenuManager
     {
         var sounds = _config().Sounds;
 
-        if (!sounds.Enabled || menu.Flags.HasFlag(MenuFlags.NoSound))
+        if (!sounds.Enabled || !_soundsEnabled() || menu.Flags.HasFlag(MenuFlags.NoSound))
         {
             return;
         }
@@ -386,7 +405,43 @@ internal sealed class MenuSystem : IVGUIMenuManager
                 continue;
             }
 
+            // Another menu system opened a menu after ours: step aside.
+            if (ExternalMenus is { } external
+                && GetExternal(external, client) is { } open
+                && open != player.ExternalMenuAtDisplay)
+            {
+                CancelPlayerMenu(player, MenuCancelReason.Interrupted, false, true);
+
+                continue;
+            }
+
             player.Hud.EnsureAlive(client);
+        }
+    }
+
+    private ulong? GetExternal(IExternalMenuSource external, IGameClient client)
+    {
+        try
+        {
+            return external.GetOpenMenu(client);
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning(e, "Failed to query the external menu state");
+
+            return null;
+        }
+    }
+
+    private void CloseExternal(IExternalMenuSource external, IGameClient client)
+    {
+        try
+        {
+            external.Close(client);
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning(e, "Failed to close the external menu");
         }
     }
 

@@ -6,7 +6,7 @@ namespace VGUIMenu;
 
 internal sealed class MenuConfig
 {
-    public const string FileName = "vguimenu.json";
+    public const string FileName = "vguimenu.jsonc";
 
     /// <summary>Compiled Panorama layout. It must be shipped to clients (workshop addon).</summary>
     public string LayoutPath { get; set; } = "panorama/layout/custom_game/vguimenu.vxml_c";

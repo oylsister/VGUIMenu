@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Sharp.Shared;
 using Sharp.Shared.Enums;
@@ -23,6 +23,7 @@ public sealed class VGUIMenuModule : IModSharpModule, IClientListener, IGameList
     private readonly IModSharp               _modSharp;
     private readonly ISharpModuleManager     _modules;
     private readonly IClientManager          _clients;
+    private readonly IConVarManager          _conVars;
     private readonly string                  _sharpPath;
     private readonly MenuSystem              _system;
 
@@ -31,6 +32,9 @@ public sealed class VGUIMenuModule : IModSharpModule, IClientListener, IGameList
     private MenuConfig    _config;
     private TestMenus?    _testMenus;
     private Guid?         _thinkTimer;
+    private IConVar?      _soundsConVar;
+
+    private const string SoundsConVarName = "ms_vguimenu_sounds";
 
     public VGUIMenuModule(ISharedSystem sharedSystem,
         string                          dllPath,
@@ -43,12 +47,18 @@ public sealed class VGUIMenuModule : IModSharpModule, IClientListener, IGameList
         _modSharp  = sharedSystem.GetModSharp();
         _modules   = sharedSystem.GetSharpModuleManager();
         _clients   = sharedSystem.GetClientManager();
+        _conVars   = sharedSystem.GetConVarManager();
         _sharpPath = sharpPath;
 
         MenuCallbacks.Logger = _logger;
 
         _config = MenuConfig.Load(sharpPath, _logger);
-        _system = new MenuSystem(sharedSystem.GetPanoramaManager(), () => _config, _modSharp.EngineTime, _logger);
+        _system = new MenuSystem(sharedSystem.GetPanoramaManager(),
+                                 sharedSystem.GetTransmitManager(),
+                                 () => _config,
+                                 _modSharp.EngineTime,
+                                 _logger,
+                                 () => _soundsConVar?.GetBool() ?? true);
     }
 
 #region IModSharpModule
@@ -57,6 +67,10 @@ public sealed class VGUIMenuModule : IModSharpModule, IClientListener, IGameList
     {
         _clients.InstallClientListener(this);
         _modSharp.InstallGameListener(this);
+
+        // On hot reload the ConVar already exists, so reuse it.
+        _soundsConVar = _conVars.CreateConVar(SoundsConVarName, true, "Play VGUIMenu select / exit sounds (also needs Sounds.Enabled in vguimenu.jsonc).")
+                        ?? _conVars.FindConVar(SoundsConVarName, false);
 
         for (var i = 0; i < _keyCommands.Length; i++)
         {
@@ -83,6 +97,18 @@ public sealed class VGUIMenuModule : IModSharpModule, IClientListener, IGameList
         _modules.RegisterSharpModuleInterface<IVGUIMenuManager>(this, IVGUIMenuManager.Identity, _system);
     }
 
+    public void OnAllModulesLoaded()
+        => _system.ExternalMenus = StockMenuSource.TryCreate(_modules, _logger);
+
+    /// <summary>MenuManager loaded after us (or reloaded): pick it up.</summary>
+    public void OnLibraryConnected(string name)
+    {
+        if (_system.ExternalMenus is null)
+        {
+            _system.ExternalMenus = StockMenuSource.TryCreate(_modules, _logger);
+        }
+    }
+
     public void Shutdown()
     {
         if (_thinkTimer is { } timer)
@@ -102,6 +128,8 @@ public sealed class VGUIMenuModule : IModSharpModule, IClientListener, IGameList
         }
 
         _system.Shutdown();
+        _system.ExternalMenus = null;
+        _soundsConVar = null;
 
         _modSharp.RemoveGameListener(this);
         _clients.RemoveClientListener(this);
@@ -109,7 +137,7 @@ public sealed class VGUIMenuModule : IModSharpModule, IClientListener, IGameList
 
 #endregion
 
-    /// <summary>vguimenu.json is re-read on every map start.</summary>
+    /// <summary>vguimenu.jsonc is re-read on every map start.</summary>
     private void ReloadConfig()
         => _config = MenuConfig.Load(_sharpPath, _logger);
 

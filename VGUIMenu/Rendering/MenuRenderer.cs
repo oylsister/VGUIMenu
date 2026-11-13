@@ -126,8 +126,9 @@ internal static class MenuRenderer
             {
                 startItem = md.FirstItem;
 
-                // Not enough room going backwards: start from the beginning.
-                if (startItem <= maxItems)
+                // Fewer than a full page left behind startItem: start from the beginning.
+                // (startItem + 1 items remain going backwards, so a full page needs startItem >= maxItems - 1.)
+                if (startItem + 1 < maxItems)
                 {
                     startItem = 0;
                     order     = ItemOrder.Ascending;

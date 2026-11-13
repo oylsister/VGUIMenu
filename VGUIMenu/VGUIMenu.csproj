@@ -14,6 +14,8 @@
 
   <ItemGroup>
     <PackageReference Include="ModSharp.Sharp.Shared" Version="2.1.227" ExcludeAssets="runtime" />
+    <!-- Optional: ModSharp's MenuManager, loaded from sharp/shared when installed (see ExternalMenus.cs). -->
+    <PackageReference Include="ModSharp.Sharp.Modules.MenuManager.Shared" Version="2.1.227" ExcludeAssets="runtime" />
     <!-- VGUIMenu.Shared is loaded by ModSharp from sharp/shared, so it is not copied next to the module. -->
     <ProjectReference Include="..\VGUIMenu.Shared\VGUIMenu.Shared.csproj" Private="false" ExcludeAssets="runtime" />
   </ItemGroup>
@@ -30,7 +32,7 @@
     </PropertyGroup>
     <Copy SourceFiles="$(TargetDir)$(TargetName).dll;$(TargetDir)$(TargetName).deps.json" DestinationFolder="$(BuildRoot)modules\$(TargetName)" />
     <Copy SourceFiles="$(SharedOutDir)VGUIMenu.Shared.dll" DestinationFolder="$(BuildRoot)shared\VGUIMenu.Shared" Condition="Exists('$(SharedOutDir)VGUIMenu.Shared.dll')" />
-    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\configs\vguimenu.json" DestinationFolder="$(BuildRoot)configs" />
+    <Copy SourceFiles="$(MSBuildThisFileDirectory)..\configs\vguimenu.jsonc" DestinationFolder="$(BuildRoot)configs" />
   </Target>
 
 </Project>

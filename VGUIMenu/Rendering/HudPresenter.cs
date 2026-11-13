@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Sharp.Shared.Enums;
 using Sharp.Shared.GameEntities;
 using Sharp.Shared.Managers;
@@ -8,7 +8,8 @@ namespace VGUIMenu.Rendering;
 
 /// <summary>
 ///     Shows a <see cref="MenuPanel" /> on one player's Panorama layout (vguimenu.vxml).
-///     Each player owns their own layout entity. Only changed dialog variables / classes are sent.
+///     Each player owns their own layout entity, which is only transmitted to that player
+///     (other players and spectators never receive it). Only changed dialog variables / classes are sent.
 /// </summary>
 internal sealed class HudPresenter
 {
@@ -31,6 +32,7 @@ internal sealed class HudPresenter
     private static readonly string[] LineVars = Enumerable.Range(1, MaxLines).Select(n => $"line{n}").ToArray();
 
     private readonly IPanoramaManager           _panorama;
+    private readonly ITransmitManager           _transmit;
     private readonly Func<MenuConfig>           _config;
     private readonly ILogger                    _logger;
     private readonly Dictionary<string, string> _sentVars    = new (StringComparer.Ordinal);
@@ -39,9 +41,10 @@ internal sealed class HudPresenter
     private ICustomHudLayout? _layout;
     private MenuPanel?        _current;
 
-    public HudPresenter(IPanoramaManager panorama, Func<MenuConfig> config, ILogger logger)
+    public HudPresenter(IPanoramaManager panorama, ITransmitManager transmit, Func<MenuConfig> config, ILogger logger)
     {
         _panorama = panorama;
+        _transmit = transmit;
         _config   = config;
         _logger   = logger;
     }
@@ -78,6 +81,7 @@ internal sealed class HudPresenter
     {
         if (IsLayoutValid())
         {
+            _transmit.RemoveEntityHooks(_layout!);
             _layout!.Kill();
         }
 
@@ -96,7 +100,7 @@ internal sealed class HudPresenter
     private bool IsLayoutValid()
         => _layout is not null && _layout.IsValid();
 
-    private bool EnsureLayout()
+    private bool EnsureLayout(IGameClient client)
     {
         if (IsLayoutValid())
         {
@@ -105,23 +109,44 @@ internal sealed class HudPresenter
 
         _sentVars.Clear();
         _sentClasses.Clear();
+        _layout = null;
 
-        var path = _config().LayoutPath;
-        _layout = _panorama.CreateLayout(path, null);
+        if (client.GetPlayerController() is not { } controller)
+        {
+            return false;
+        }
 
-        if (_layout is null)
+        var path   = _config().LayoutPath;
+        var layout = _panorama.CreateLayout(path, null);
+
+        if (layout is null)
         {
             _logger.LogError("Failed to create custom HUD layout '{Path}'", path);
 
             return false;
         }
 
+        // Private to the owner: not observable by spectators, and not transmitted to anyone else
+        // (including players who join later, since the default is "don't transmit").
+        layout.Observable = false;
+
+        if (!_transmit.AddEntityHooks(layout, false) || !_transmit.SetEntityState(layout.Index, controller.Index, true, -1))
+        {
+            _logger.LogError("Failed to restrict custom HUD layout '{Path}' to {Client}; not showing it", path, client.Name);
+            _transmit.RemoveEntityHooks(layout);
+            layout.Kill();
+
+            return false;
+        }
+
+        _layout = layout;
+
         return true;
     }
 
     private void Push(IGameClient client)
     {
-        if (_current is not { } panel || !EnsureLayout())
+        if (_current is not { } panel || !EnsureLayout(client))
         {
             return;
         }

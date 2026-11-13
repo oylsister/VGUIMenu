@@ -3,3 +3,7 @@
 /VGUIMenu/bin
 /VGUIMenu.Shared/obj
 /VGUIMenu.Shared/bin
+/VGUIMenu.Tests/obj
+/VGUIMenu.Tests/bin
+# Packaged output of the PackageModule target (dotnet build)
+/build

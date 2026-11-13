@@ -13,7 +13,8 @@
     margin-left: 0.8%;
     padding: 6px 12px 8px 10px;
     flow-children: down;
-    background-color: rgba(0, 0, 0, 0.45);
+    /* Sampled from the spec screenshots: black at ~23% (measured 0.20-0.25 along the panel edge). */
+    background-color: rgba(0, 0, 0, 0.23);
     border-radius: 4px;
     font-family: Stratum2, 'Arial Unicode MS';
     font-size: 24px;
@@ -28,25 +29,24 @@
     opacity: 0;
 }
 
-/* Title: light yellow. */
+/* Title: light yellow (sampled from the spec screenshots). */
 .Title
 {
-    color: #fff1c4;
+    color: #fff3c4;
     text-shadow: 1px 1px 2px #000000;
 }
 
-/* Choices, Back, Next, Exit: yellow / orange. */
+/* Choices, Back, Next, Exit: yellow / orange (sampled from the spec screenshots). */
 .Line
 {
-    color: #f0a83a;
+    color: #e5a34c;
     text-shadow: 1px 1px 2px #000000;
 }
 
 /* Disabled choices: light yellow, like the title. */
 .Line.Muted
 {
-    color: #fff1c4;
-    opacity: 0.85;
+    color: #fff3c4;
 }
 
 .Collapsed
